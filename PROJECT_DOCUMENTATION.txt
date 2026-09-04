@@ -1,0 +1,309 @@
+================================================================================
+                    KEYLENS — NLP KEYWORD & KEY-PHRASE EXTRACTOR
+                          COMPLETE PROJECT DOCUMENTATION
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. PROJECT IDEA & OVERVIEW
+2. NLP METHODOLOGY & ALGORITHMIC ARCHITECTURE
+3. TECHNICAL STACK DETAILS
+4. PROJECT STRUCTURE & COMPONENT GUIDE ("WHAT IS WHAT")
+5. SYSTEM DATA FLOW & WORKFLOW ("HOW EVERYTHING WORKS")
+6. API ENDPOINTS SPECIFICATION
+7. HOW TO RUN THE PROJECT
+
+
+================================================================================
+1. PROJECT IDEA & OVERVIEW
+================================================================================
+
+KeyLens is an end-to-end, high-precision Natural Language Processing (NLP) web 
+application designed to extract meaningful keywords and multi-word key phrases 
+from unformatted text documents, news articles, and scientific publications.
+
+Traditional keyword extraction tools frequently fail because they focus solely on 
+isolated single words (unigrams), missing critical compound technical terms like 
+"natural language processing", "global climate change", or "quantum computing". 
+KeyLens solves this challenge by implementing multi-word n-gram candidate extraction 
+and aggregating three distinct NLP methodologies (TF-IDF, RAKE, and TextRank) into 
+a unified, customizable Hybrid Scoring Model.
+
+Key Value Drivers:
+- Multi-Word Keyphrase Extraction: Captures 1-to-4 word technical terms.
+- Multi-Algorithm Comparison: Allows side-by-side evaluation of statistical, 
+  graph-based, and co-occurrence algorithms.
+- Custom Hybrid Weighting: Users can fine-tune the influence of individual algorithms.
+- Real-Time Analytics & Visualization: Interactive phrase cloud, document metrics, 
+  Recharts score breakdown graphs, and instant CSV/JSON exports.
+
+
+================================================================================
+2. NLP METHODOLOGY & ALGORITHMIC ARCHITECTURE
+================================================================================
+
+KeyLens relies on a multi-stage NLP pipeline:
+
+[Raw Text Input] 
+       │
+       ▼
+[Preprocessing & Cleaning] (Stop-word removal, regex pattern filtering, lowercase normalization)
+       │
+       ▼
+[Candidate Keyphrase Generation] (n-gram extraction: unigrams, bigrams, trigrams)
+       │
+       ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        ALGORITHMIC ENGINE                              │
+├──────────────────┬──────────────────┬──────────────────┬───────────────┤
+│    1. TF-IDF     │     2. RAKE      │   3. TextRank    │   4. Hybrid   │
+│   (Statistical)  │ (Co-occurrence)  │ (Graph PageRank) │  (Combined)   │
+└──────────────────┴──────────────────┴──────────────────┴───────────────┘
+       │
+       ▼
+[Score Normalization & Ranking] (Rescaling scores between 0.0 and 1.0)
+       │
+       ▼
+[Structured Response & UI Visualization]
+
+--------------------------------------------------------------------------------
+A. Preprocessing & Candidate Generation
+--------------------------------------------------------------------------------
+- Cleans input text while preserving sentence boundaries.
+- Uses NLTK stop-word lists and regex rules to filter out low-information words 
+  (e.g., "is", "the", "and", "under").
+- Generates candidate phrases of length 1 to 4 words.
+
+--------------------------------------------------------------------------------
+B. Extraction Algorithms Explained
+--------------------------------------------------------------------------------
+
+1. TF-IDF (Term Frequency - Inverse Document Frequency)
+   - Concept: Measures how frequently a candidate phrase appears in the document 
+     relative to standard corpus frequency expectations.
+   - Mathematical Scaling: Uses sublinear TF scaling: 1 + log(tf).
+   - Strengths: Highly effective for identifying statistically significant domain 
+     specific terms.
+
+2. RAKE (Rapid Automatic Keyword Extraction)
+   - Concept: Constructs a word co-occurrence matrix by using stop-words and 
+     punctuation as phrase delimiters.
+   - Scoring Formula: Computes score(w) = deg(w) / freq(w), where deg(w) is the 
+     degree of word w in the co-occurrence graph and freq(w) is its frequency. 
+     The score of a phrase is the sum of its member word scores.
+   - Strengths: Exceptional at identifying long multi-word key phrases.
+
+3. TextRank
+   - Concept: An unsupervised graph-based ranking model adapted from Google's 
+     PageRank algorithm.
+   - Network Construction: Candidate words form graph nodes, and edges are added 
+     between words appearing within a sliding co-occurrence window (default: size 3).
+   - Iterative Graph Calculation: PageRank algorithm runs until node scores converge. 
+     Keyphrases are constructed by concatenating adjacent top-ranked words.
+   - Strengths: Captures semantic centrality and structural importance within text.
+
+4. Hybrid Scoring Model (Recommended Default)
+   - Concept: Integrates TF-IDF, RAKE, and TextRank scores into a single weighted score.
+   - Formula:
+       Score_hybrid = (w_tfidf * Score_tfidf) + (w_rake * Score_rake) + (w_textrank * Score_textrank)
+     Where w_tfidf, w_rake, and w_textrank are normalized weights (default: 0.4, 0.3, 0.3).
+   - Strengths: Eliminates individual algorithm bias and delivers maximum precision 
+     and recall.
+
+
+================================================================================
+3. TECHNICAL STACK DETAILS
+================================================================================
+
+BACKEND STACK:
+- Language: Python 3.13
+- Web Framework: FastAPI (Asynchronous, high-performance ASGI Python framework)
+- ASGI Server: Uvicorn (Fast ASGI server implementation)
+- Data Schemas: Pydantic v2 (Strict type checking & data validation)
+- Machine Learning & Math:
+  * Scikit-Learn (TfidfVectorizer for statistical feature extraction)
+  * NetworkX (Graph structure creation & PageRank computation)
+  * NLTK (Natural Language Toolkit for stop-words & tokenization)
+  * NumPy (Vector operations & matrix normalization)
+- Document Parsers: PyPDF2, python-docx (Extracts text from PDF/DOCX uploads)
+- Testing Framework: Pytest, HTTPX, Starlette TestClient
+
+FRONTEND STACK:
+- Library: React 18 with TypeScript 5
+- Build Tool & Dev Server: Vite 5 (Ultra-fast HMR bundler)
+- Styling Engine: Tailwind CSS v3
+- Typography: Google Fonts (Outfit for headings, Inter for body UI)
+- Visualization & UI Libraries:
+  * Recharts (Interactive SVG comparative bar graphs)
+  * Lucide-React (Modern icon library)
+  * clsx / tailwind-merge (Dynamic conditional utility styling)
+
+
+================================================================================
+4. PROJECT STRUCTURE & COMPONENT GUIDE ("WHAT IS WHAT")
+================================================================================
+
+ROOT DIRECTORY (c:\Users\ASUS\Downloads\nlp)
+│
+├── backend/                        --> Python FastAPI Backend Service
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── routes.py           --> REST API Endpoint definitions (/extract, /compare, /upload, /health)
+│   │   ├── core/
+│   │   │   └── config.py           --> Environment configuration settings
+│   │   ├── models/
+│   │   │   └── schemas.py          --> Pydantic data schemas for requests/responses
+│   │   ├── services/
+│   │   │   └── nlp/                --> Core Algorithmic Engine Modules
+│   │   │       ├── preprocessing.py      --> Cleaning & tokenization
+│   │   │       ├── candidate_generator.py--> n-gram phrase candidate generator
+│   │   │       ├── tfidf_extractor.py    --> TF-IDF scoring engine
+│   │   │       ├── rake_extractor.py     --> RAKE co-occurrence graph engine
+│   │   │       ├── textrank_extractor.py --> TextRank PageRank engine
+│   │   │       ├── hybrid_extractor.py   --> Weighted aggregation engine
+│   │   │       ├── ranking.py            --> Pipeline orchestrator & ranker
+│   │   │       └── similarity.py         --> Similarity helpers
+│   │   └── utils/
+│   │       ├── file_parser.py      --> TXT, PDF, DOCX text extraction
+│   │       └── text_utils.py       --> Word/sentence counter & document stats
+│   ├── tests/                      --> Pytest Automated Unit Test Suite
+│   │   ├── test_api.py             --> Endpoints test suite
+│   │   └── test_nlp_pipeline.py    --> NLP extractor algorithm tests
+│   ├── requirements.txt            --> Python package dependencies
+│   └── run.py                      --> Uvicorn server launcher script
+│
+├── frontend/                       --> React + TypeScript Web Application
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.tsx            --> Header with dark mode & API connection status
+│   │   │   ├── ArticleInput.tsx      --> Text input area, sample presets & drag-and-drop file uploader
+│   │   │   ├── AlgorithmSelector.tsx --> Algorithm tab picker, top_n slider & hybrid weights
+│   │   │   ├── StatsCards.tsx        --> Stat cards (word count, sentences, processing speed)
+│   │   │   ├── ResultsDisplay.tsx    --> Ranked phrase table, score bars, copy & CSV/JSON export
+│   │   │   ├── PhraseCloud.tsx       --> Visual score-scaled phrase cloud
+│   │   │   └── ComparisonView.tsx    --> 4-algorithm side-by-side benchmark & Recharts graph
+│   │   ├── services/
+│   │   │   └── api.ts                --> Fetch wrapper communicating with FastAPI endpoints
+│   │   ├── types/
+│   │   │   └── index.ts              --> TypeScript interfaces matching backend models
+│   │   ├── App.tsx                   --> Main container, state controller & layout manager
+│   │   ├── main.tsx                  --> React DOM root renderer
+│   │   └── index.css                 --> Tailwind directives & glassmorphism utilities
+│   ├── index.html                    --> HTML page template with Google Fonts
+│   ├── package.json                  --> Node.js dependencies & scripts
+│   ├── tailwind.config.js            --> Custom color palette & keyframes
+│   ├── tsconfig.json                 --> TypeScript compilation settings
+│   └── vite.config.ts                --> Vite build & API proxy setup
+│
+├── sample_data/                    --> Evaluation Sample Texts
+│   ├── sample_nlp_ai.txt             --> AI & NLP sample article
+│   ├── sample_climate_change.txt     --> Climate science sample article
+│   └── sample_quantum_computing.txt  --> Quantum computing sample article
+│
+└── docs/                           --> Project Documentation Directory
+
+
+================================================================================
+5. SYSTEM DATA FLOW & WORKFLOW ("HOW EVERYTHING WORKS")
+================================================================================
+
+1. USER INPUT / FILE UPLOAD:
+   - User inputs text into the text area, selects a sample article preset, or 
+     drags & drops a file (.txt, .pdf, .docx).
+   - If a file is uploaded, frontend sends a multipart FormData POST request to `/api/upload`.
+   - Backend extracts text, calculates document statistics, and returns raw text.
+
+2. PARAMETER CONFIGURATION:
+   - User chooses an extraction mode: Single Algorithm or "Compare 4 Algorithms".
+   - User selects an algorithm (Hybrid, TF-IDF, RAKE, or TextRank) and adjusts 
+     Target Phrase Count (Top N: 3 to 50).
+   - Optional: User adjusts algorithm weights for Hybrid mode.
+
+3. API EXECUTION:
+   - User clicks "Extract Key Phrases".
+   - Frontend calls `extractKeywords()` or `compareMethods()` in `src/services/api.ts`.
+   - Request payload is transmitted via HTTP POST to backend endpoint `/api/extract` or `/api/compare`.
+
+4. BACKEND PROCESSING:
+   - FastAPI parses payload against Pydantic `ExtractionRequest` schema.
+   - Text enters `run_extraction_pipeline()`:
+     a) Calculates document statistics (word count, unique words, sentence count, avg sentence length).
+     b) Generates n-gram candidate phrases.
+     c) Runs selected algorithm(s) (TF-IDF, RAKE, TextRank, or Hybrid).
+     d) Rescales raw scores to [0.0, 1.0] normalized range.
+     e) Ranks key phrases by score and formats response.
+   - FastAPI returns `ExtractionResponse` or `ComparisonResponse` JSON within milliseconds.
+
+5. FRONTEND RENDERING:
+   - React receives response and updates component state.
+   - UI displays:
+     * Statistics cards (word count, sentences, character count, runtime in ms).
+     * Interactive phrase cloud (text size scales relative to phrase score).
+     * Ranked keyword table with animated progress bars, frequency metrics, and rank badges.
+     * Recharts comparison bar graph showing algorithm consensus scores.
+   - User can copy any phrase with one click or export complete keyword sets to CSV/JSON files.
+
+
+================================================================================
+6. API ENDPOINTS SPECIFICATION
+================================================================================
+
+1. GET /api/health
+   - Description: Health check and engine diagnostic endpoint.
+   - Response: JSON object containing status ("healthy"), version, and available algorithms.
+
+2. POST /api/extract
+   - Description: Runs key phrase extraction using the specified algorithm.
+   - Request Body:
+     {
+       "text": "Article text here...",
+       "method": "hybrid",           // Options: "hybrid", "tfidf", "rake", "textrank"
+       "top_n": 10,                 // Range: 3 to 50
+       "weights": { "tfidf": 0.4, "rake": 0.3, "textrank": 0.3 }
+     }
+   - Response: JSON object containing success boolean, method, statistics, keywords list, and processing_time_ms.
+
+3. POST /api/compare
+   - Description: Runs all 4 extraction methods simultaneously for comparative evaluation.
+   - Request Body:
+     {
+       "text": "Article text here...",
+       "top_n": 10
+     }
+   - Response: JSON object containing statistics, results dictionary mapped by method name, and processing_time_ms.
+
+4. POST /api/upload
+   - Description: Uploads document file (.txt, .pdf, .docx) and extracts text.
+   - Request: Multipart Form Data with file field.
+   - Response: JSON object containing extracted text, word count, filename, and file type.
+
+
+================================================================================
+7. HOW TO RUN THE PROJECT
+================================================================================
+
+PREREQUISITES:
+- Python 3.10+ (Virtual environment created in backend/venv)
+- Node.js 18+ & npm
+
+STARTING THE BACKEND SERVER:
+1. Open terminal in the project directory:
+   cd backend
+2. Activate virtual environment and run launcher:
+   venv\Scripts\python.exe run.py
+   (Backend runs at http://127.0.0.1:8000)
+
+STARTING THE FRONTEND DEV SERVER:
+1. Open terminal in the frontend directory:
+   cd frontend
+2. Launch Vite dev server:
+   npm run dev
+   (Frontend application runs at http://localhost:5173/)
+
+RUNNING AUTOMATED BACKEND TESTS:
+   cd backend
+   venv\Scripts\pytest.exe tests
+
+================================================================================
+                         DOCUMENTATION COMPLETE
+================================================================================

@@ -1,7 +1,7 @@
 # 🎓 College Projects Portfolio
 
 > **Abhishek** — B.E. Computer Science & Engineering  
-> A collection of independent academic projects built for coursework, internships, and self-study.
+> A collection of academic projects built for coursework, internships.
 
 ---
 

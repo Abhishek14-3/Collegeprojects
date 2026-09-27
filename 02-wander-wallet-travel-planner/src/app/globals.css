@@ -1,0 +1,440 @@
+@import "tailwindcss";
+
+:root {
+  /* Core Brand Palette - Wander Wallet Artisan Orange & Cream */
+  --color-orange: #E85D04;           /* Tuscan Tangerine (Primary Brand Accent, CTAs, Hero Energy) */
+  --color-orange-dark: #C44900;      /* Spiced Persimmon (Hover states, high-contrast badges) */
+  --color-orange-light: #FF822E;     /* Sunlit Mandarin (Gradients, highlight glows) */
+  --color-apricot: #FFECD1;          /* Apricot Nectar (Soft tag backgrounds, chip fills) */
+  --color-apricot-border: #FCD5A3;   /* Delicate Apricot Outline */
+
+  --color-cream: #FAF5EE;            /* Sweet Cream Canvas (Background: warm, low-glare) */
+  --color-cream-light: #FFFBF5;      /* Clotted Cream */
+  --color-ivory: #FFFFFF;            /* Pure Whipped Ivory (Cards, surfaces, floating docks) */
+  --color-white: #FFFFFF;
+  
+  --color-sand: #F3ECE0;             /* Soft Cashmere (Sub-cards, nested timeline track) */
+  --color-sand-light: #F9F5EE;       /* Gentle Tint Sand */
+  --color-sand-border: #E5D8C5;      /* Warm Biscuit (Borders, dividers, subtle lines) */
+  --color-taupe: #E5D8C5;            /* Warm Biscuit */
+
+  --color-charcoal: #1E1A17;         /* Espresso Roast (Primary text: deep, warm, crisp readability) */
+  --color-charcoal-muted: #797169;   /* Muted Walnut (Secondary text, metadata, dates) */
+  --color-charcoal-subtle: #9C9287;  /* Soft Umber (Placeholders, inactive indicators) */
+
+  /* Legacy & Semantic Bindings (Backwards compatible with existing templates) */
+  --color-navy: #1E1A17;             /* Deep Espresso (Structure, primary buttons, headers) */
+  --color-navy-dark: #13100E;        /* Ultra Deep Espresso */
+  --color-navy-light: #2E2824;       /* Warm Espresso */
+  --color-forest: #1E1A17;
+  --color-forest-dark: #13100E;
+  --color-forest-light: #2E2824;
+
+  --color-terracotta: #E85D04;       /* Tuscan Tangerine */
+  --color-terracotta-hover: #C44900; /* Spiced Persimmon */
+  --color-clay: #D94E00;
+
+  --color-ochre: #F48C06;            /* Sunlit Amber (Currency chips, stars, landmarks) */
+  --color-ochre-muted: #FFD29D;
+  --color-ochre-dark: #D47400;
+  --color-gold: #F48C06;
+  --color-gold-muted: #FFD29D;
+  --color-gold-dark: #D47400;
+  --color-sage: #2D6A4F;             /* Alpine Spruce (Settled states, surplus, positive health) */
+  --color-sage-light: #D8F3DC;
+  --color-sage-dark: #1B4332;
+
+  --color-critical: #C92A2A;         /* Crimson Warning (Breach alerts, emergency overspend) */
+
+  /* Theme semantic mappings */
+  --background: var(--color-cream);
+  --foreground: var(--color-charcoal);
+  --card: var(--color-ivory);
+  --card-muted: var(--color-sand);
+  --border: var(--color-taupe);
+  --primary: var(--color-orange);
+  --primary-foreground: #FFFFFF;
+  --accent: var(--color-orange);
+  --accent-foreground: #FFFFFF;
+  --ochre: var(--color-ochre);
+  --gold: var(--color-gold);
+}
+
+@theme inline {
+  --color-orange: var(--color-orange);
+  --color-orange-dark: var(--color-orange-dark);
+  --color-orange-light: var(--color-orange-light);
+  --color-apricot: var(--color-apricot);
+  --color-apricot-border: var(--color-apricot-border);
+
+  --color-navy: var(--color-navy);
+  --color-navy-dark: var(--color-navy-dark);
+  --color-navy-light: var(--color-navy-light);
+  --color-forest: var(--color-navy);
+  --color-forest-dark: var(--color-navy-dark);
+  --color-forest-light: var(--color-navy-light);
+  
+  --color-charcoal: var(--color-charcoal);
+  --color-charcoal-muted: var(--color-charcoal-muted);
+  --color-charcoal-subtle: var(--color-charcoal-subtle);
+  
+  --color-cream: var(--color-cream);
+  --color-cream-light: var(--color-cream-light);
+  --color-ivory: var(--color-ivory);
+  --color-sand: var(--color-sand);
+  --color-sand-light: var(--color-sand-light);
+  --color-sand-border: var(--color-sand-border);
+  --color-taupe: var(--color-taupe);
+  
+  --color-terracotta: var(--color-terracotta);
+  --color-terracotta-hover: var(--color-terracotta-hover);
+  --color-clay: var(--color-clay);
+  
+  --color-ochre: var(--color-ochre);
+  --color-ochre-muted: var(--color-ochre-muted);
+  --color-ochre-dark: var(--color-ochre-dark);
+  --color-gold: var(--color-ochre);
+  --color-gold-muted: var(--color-ochre-muted);
+  --color-gold-dark: var(--color-ochre-dark);
+  --color-sage: var(--color-sage);
+  --color-sage-light: var(--color-sage-light);
+  --color-sage-dark: var(--color-sage-dark);
+  
+  --color-critical: var(--color-critical);
+  --color-white: var(--color-white);
+
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-hand: var(--font-caveat), cursive;
+  --font-editorial: var(--font-dm-serif), Georgia, serif;
+  --font-label: var(--font-josefin), "Helvetica Neue", sans-serif;
+  --font-display-count: var(--font-black-ops), Impact, "Arial Black", sans-serif;
+  --font-script-elegant: var(--font-cookie), "Brush Script MT", cursive;
+  --font-brand: var(--font-merienda), Georgia, serif;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-charcoal);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial styling primitives */
+.font-display {
+  font-family: var(--font-serif);
+}
+
+.font-editorial {
+  font-family: var(--font-editorial);
+  letter-spacing: -0.015em;
+}
+
+.font-label {
+  font-family: var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.font-script {
+  font-family: var(--font-hand);
+}
+
+/* Black Ops One: step numbers, stats, counters, logo badge */
+.font-count {
+  font-family: var(--font-display-count);
+  letter-spacing: 0.04em;
+}
+
+/* Cookie: elegant handwritten quotes, taglines, annotations */
+.font-cookie {
+  font-family: var(--font-script-elegant);
+}
+
+/* Merienda: brand name, trip titles, destination labels */
+.font-brand {
+  font-family: var(--font-brand);
+}
+
+/* Subtle paper texture overlay */
+.paper-texture {
+  background-color: #FAF6EE;
+  background-image: radial-gradient(#E8DCCB 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+
+/* Premium subtle dot-grid notebook paper background — soft Japanese stationery finish */
+.dot-grid-paper {
+  background-color: #FAF6EE;
+  background-image: radial-gradient(circle, rgba(205, 188, 168, 0.4) 0.8px, transparent 0.8px);
+  background-size: 32px 32px;
+  background-attachment: local;
+}
+
+/* Dot-grid-paper sticky header — matches the base dot-grid color with blur */
+.dot-grid-header {
+  background-color: rgba(250, 246, 238, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Editorial card border */
+.editorial-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5D8C5;
+  box-shadow: 0 4px 16px -4px rgba(30, 26, 23, 0.04);
+}
+
+.editorial-card-sand {
+  background-color: #F3ECE0;
+  border: 1px solid #E5D8C5;
+}
+
+/* Travel badge / stamp */
+.travel-stamp {
+  border: 1.5px dashed #E85D04;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #C44900;
+  background-color: #FFECD1;
+}
+
+/* Glassmorphism & Modern Luxury Tokens */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #E5D8C5;
+  box-shadow: 0 12px 32px -8px rgba(30, 26, 23, 0.06), 0 4px 12px -2px rgba(232, 93, 4, 0.03);
+}
+
+.glass-panel-dark {
+  background: rgba(30, 26, 23, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(229, 216, 197, 0.2);
+  box-shadow: 0 20px 40px -15px rgba(19, 16, 14, 0.5);
+}
+
+.glass-card-interactive {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #E5D8C5;
+  box-shadow: 0 4px 20px -2px rgba(30, 26, 23, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-interactive:hover {
+  transform: translateY(-3px);
+  border-color: #E85D04;
+  box-shadow: 0 16px 36px -8px rgba(232, 93, 4, 0.14);
+}
+
+/* Ambient glow subtle lighting */
+.ambient-glow {
+  position: relative;
+}
+
+.ambient-glow::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -80px;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(232, 93, 4, 0.08) 0%, rgba(250, 245, 238, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-glow::after {
+  content: "";
+  position: absolute;
+  bottom: -100px;
+  left: -80px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(244, 140, 6, 0.07) 0%, rgba(250, 245, 238, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: shimmer 2.5s infinite;
+}
+
+/* Subtle modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E5D8C5;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #E85D04;
+}
+
+/* ==========================================================================
+   Artisan Orange & Cream Complete Theme Overrides
+   Transforms legacy forest green (#163F38) & midnight navy (#172A3A)
+   into rich Tuscan Tangerine Orange (#E85D04) and Espresso Roast (#1E1A17).
+   ========================================================================== */
+
+/* Active buttons, action pills, actualize buttons, active workspace tabs */
+.bg-\[\#163F38\],
+button.bg-\[\#163F38\],
+a.bg-\[\#163F38\],
+.bg-\[\#172A3A\],
+button.bg-\[\#172A3A\],
+a.bg-\[\#172A3A\],
+.bg-\[\#0f1d28\],
+.bg-\[\#11322d\],
+.bg-\[\#1f534a\],
+.bg-\[\#23584e\],
+.bg-\[\#C85C3A\],
+.bg-\[\#C95B3D\] {
+  background-color: #E85D04 !important;
+  color: #FFFFFF !important;
+}
+
+/* Button & interactive hover states */
+.hover\:bg-\[\#163F38\]:hover,
+.hover\:bg-\[\#11322d\]:hover,
+.hover\:bg-\[\#1f534a\]:hover,
+.hover\:bg-\[\#233d52\]:hover,
+.hover\:bg-\[\#172A3A\]:hover,
+.hover\:bg-\[\#b34f2f\]:hover,
+.hover\:bg-\[\#b04f30\]:hover {
+  background-color: #C44900 !important;
+  color: #FFFFFF !important;
+}
+
+/* Headings & dark typography -> Crisp Espresso Roast */
+h1.text-\[\#163F38\],
+h2.text-\[\#163F38\],
+h3.text-\[\#163F38\],
+h4.text-\[\#163F38\],
+h1.text-\[\#172A3A\],
+h2.text-\[\#172A3A\],
+h3.text-\[\#172A3A\],
+h4.text-\[\#172A3A\],
+span.text-\[\#163F38\],
+p.text-\[\#163F38\],
+.text-\[\#172A3A\],
+.text-\[\#292726\],
+.text-\[\#2C2C2C\],
+.text-\[\#2C241B\] {
+  color: #1E1A17 !important;
+}
+
+/* Accent icons, links, and highlights -> Tuscan Tangerine */
+a.text-\[\#163F38\],
+button.text-\[\#163F38\],
+.hover\:text-\[\#163F38\]:hover,
+.text-\[\#C85C3A\],
+.text-\[\#C95B3D\],
+.hover\:text-\[\#C85C3A\]:hover,
+.hover\:text-\[\#C95B3D\]:hover {
+  color: #E85D04 !important;
+}
+
+/* Borders & focus rings */
+.border-\[\#163F38\],
+.border-\[\#172A3A\],
+.hover\:border-\[\#163F38\]:hover,
+.hover\:border-\[\#172A3A\]:hover,
+.hover\:border-\[\#C95B3D\]:hover {
+  border-color: #E85D04 !important;
+}
+.focus\:ring-\[\#163F38\]:focus,
+.focus\:ring-\[\#172A3A\]:focus,
+.focus\:border-\[\#163F38\]:focus,
+.focus\:border-\[\#172A3A\]:focus {
+  --tw-ring-color: #E85D04 !important;
+  border-color: #E85D04 !important;
+}
+
+/* Gradients on Hero Cards, Smart Bill Dock, AI Companion -> Sunset Tangerine into Deep Amber */
+.from-\[\#163F38\],
+.from-\#163F38 {
+  --tw-gradient-from: #E85D04 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(232, 93, 4, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #F48C06 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+.via-\[\#1b4b43\],
+.via-\[\#1c5c52\],
+.via-\[\#1d5249\] {
+  --tw-gradient-to: rgba(244, 140, 6, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #F48C06 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+.to-\[\#C95B3D\],
+.to-\[\#163F38\],
+.to-\[\#123630\],
+.to-\[\#23584e\] {
+  --tw-gradient-to: #C44900 var(--tw-gradient-to-position) !important;
+}
+
+/* Soft apricot tint badges & pill chips */
+.bg-\[\#163F38\]\/10,
+.bg-\[\#163F38\]\/20,
+.bg-\[\#172A3A\]\/10,
+.bg-\[\#FDF0EB\] {
+  background-color: #FFECD1 !important;
+  color: #C44900 !important;
+}
+.border-\[\#163F38\]\/20,
+.border-\[\#163F38\]\/30,
+.border-\[\#E9BFB2\] {
+  border-color: #FCD5A3 !important;
+}
+
+/* Cards & Surface backgrounds */
+.bg-\[\#EFE9DC\],
+.bg-\[\#EAE2CE\],
+.bg-\[\#FCF9F2\],
+.bg-\[\#F5EFE3\],
+.bg-\[\#F8F4EA\],
+.bg-\[\#F5EEE3\] {
+  background-color: #FAF5EE !important;
+}
+.bg-\[\#FFF9F0\],
+.bg-\[\#FFFDF9\] {
+  background-color: #FFFFFF !important;
+}
+.border-\[\#D5C7AD\],
+.border-\[\#DCCFBC\],
+.border-\[\#D8C9B5\],
+.border-\[\#E7DFD5\] {
+  border-color: #E5D8C5 !important;
+}
+.text-\[\#7A6C58\],
+.text-\[\#746D65\],
+.text-\[\#5A5040\],
+.text-\[\#9A8B77\] {
+  color: #797169 !important;
+}

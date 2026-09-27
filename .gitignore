@@ -110,3 +110,12 @@ desktop.ini
 # ---------------------------
 *.log
 logs/
+
+# ---------------------------
+# Next.js & Web Build Cache
+# ---------------------------
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+scratch/

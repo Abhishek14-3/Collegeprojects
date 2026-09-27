@@ -1,0 +1,329 @@
+================================================================================
+                       WANDER WALLET — PROJECT REPORT
+       Autonomous, Deterministic Group Travel & Financial Architecture
+================================================================================
+
+Date: September 2026
+Version: 1.0.0
+Author: Wander Wallet Engineering & Architecture Team
+Stack: Next.js 16 (Turbopack), React 19, TypeScript, Tailwind CSS, Leaflet, 
+       OpenStreetMap, Frankfurter Currency API, Jose (JWT), Bcrypt, Prisma
+
+================================================================================
+1. WHAT IS MY PROJECT?
+================================================================================
+
+Wander Wallet is an end-to-end, group travel planning and financial workspace
+engineered to resolve the most stressful parts of traveling together:
+budget uncertainty, unverified pricing, chaotic shared expenses, and unfair
+debt settlements.
+
+Unlike generic budgeting apps (like Splitwise or Excel) that only track raw 
+numbers after the money is already spent, and unlike generic travel sites 
+(like TripAdvisor or MakeMyTrip) that focus on individual bookings, Wander Wallet
+combines the entire lifecycle of group travel into one coherent workspace:
+
+  1. Collaborative Planning & Research:
+     - Real-world POIs, transit hubs, and accommodations using open geographic 
+       and transit databases (OpenStreetMap, Nominatim, Overpass, Amadeus).
+     - Strict price safety: If an exact live price cannot be verified, it is
+       explicitly marked as PRICE_UNAVAILABLE. No synthetic or hallucinated
+       numbers are ever presented to travelers.
+
+  2. Deterministic Minor-Unit Budget Reality Check:
+     - Budgeting engine operating in integer minor units (paise/cents) to 
+       guarantee zero floating-point rounding errors (no lost cents).
+     - Ratios allocated deterministically across Lodging (31%), Transit (20%),
+       Dining (18%), Activities (14%), Local Travel (9%), and Safety Buffer (8%).
+
+  3. Dynamic Multi-Day Itinerary Engine:
+     - Supports any duration from 1-day express trips to 14+ day expeditions.
+     - Automatically generates morning, afternoon, evening, and night schedules
+       clustered around authentic local themes with verified durations.
+
+  4. Group Members & Contributions Workspace:
+     - Tracks each traveler's role (Owner, Organizer, Member, Viewer).
+     - Differentiates between:
+       * Planned Contribution: What a member pledged to pool.
+       * Actual Contribution: What they have physically paid into the pool.
+       * Planned Share: Their expected financial responsibility.
+       * Actual Share: Their real share of expenses consumed.
+       * Current Net Balance: Exactly who is owed money vs. who owes money.
+
+  5. Deterministic Expense Engine (4 Split Methods):
+     - Equal Split: Remainder paise are absorbed without rounding drift.
+     - Exact Amount Split: Validates that exact input sums equal total bill.
+     - Percentage Split: Validates that inputs sum to exactly 100%.
+     - Custom Split: Supports custom amounts or weighted ratios.
+     - Personal Expenses: Can tag individual shopping/personal items that do
+       not burden other travelers.
+
+  6. Minimum-Cash-Flow Debt Simplification Settlement:
+     - Uses a greedy graph algorithm to resolve mutual debts into the fewest
+       possible direct payments, eliminating circular and awkward transfers.
+
+  7. Grounded AI Travel Assistant:
+     - Answers queries ("Which day is most expensive?", "Can we fit scuba diving?",
+       "What can we do tomorrow with ₹4,000?") strictly from verified database
+       context and math engines, without generating fictitious prices.
+
+  8. Travel-Journal Keepsake & PDF Export:
+     - Generates a print-styled travel summary designed like an editorial travel
+       journal rather than an impersonal accounting invoice.
+
+
+================================================================================
+2. HOW IT IS BUILT (TECH STACK & ARCHITECTURE)
+================================================================================
+
+Wander Wallet is engineered as a modern, high-performance web application:
+
+A. Core Frontend & Framework:
+   - Next.js 16.3.6 (App Router + Turbopack): Server-side rendering, API route
+     handlers, and static page generation.
+   - React 19: Concurrent features, modern hooks (`use()`, `useState`, `useEffect`).
+   - Styling: Curated editorial design system using Tailwind CSS and CSS custom
+     properties. Palette:
+       * Background: Soft Cream (#F5F0E6)
+       * Primary: Deep Forest Green (#123C35)
+       * Accent: Terracotta Clay (#C95D3A)
+       * Highlights: Warm Gold (#C9A35B) & Soft Sage (#A9B9A5)
+       * Typography: Playfair Display / Serif headings with clean Inter body font.
+
+B. Deterministic Financial Core:
+   - TypeScript Minor-Unit Arithmetic: All currency calculations in paise/cents 
+     using native JavaScript `bigint` and minor-unit integers. Eliminates IEEE 754
+     floating-point rounding inaccuracies (e.g. 0.1 + 0.2 !== 0.3).
+   - Safe BigInt JSON Serializer (`serializeBigInt`): Converts `bigint` values
+     to strings or numbers safely across HTTP boundaries.
+
+C. Mapping & Geocoding:
+   - Leaflet.js with OpenStreetMap and CartoDB Voyager tiles.
+   - Completely free, open-source, and does NOT require any proprietary API keys.
+   - Nominatim Geocoder & Overpass API for POI querying.
+
+D. Real-World Provider Adapters:
+   - Currency: Frankfurter Open Exchange API (European Central Bank data) with
+     in-memory TTL caching and deterministic minor-unit conversions.
+   - Places & POIs: Nominatim OpenStreetMap geocoding + Overpass API.
+   - Transit: Amadeus Transit Adapter + OpenStreetMap Railway/Bus station anchor.
+   - Lodging: OpenStreetMap Verified Tourism & Hospitality Overpass adapter.
+
+E. Persistence & State:
+   - Resilient In-Memory Data Store (`DataStore` in `src/lib/db/store.ts`):
+     Pre-seeded with active demo trips (`trip-goa-2026`), 6 group members,
+     multi-currency expenses, and notifications.
+   - Prisma ORM Schema: 25 production models ready for PostgreSQL.
+   - JWT + Bcrypt Session Engine: Secure HTTP-only cookies for authentication.
+
+
+================================================================================
+3. CORE IDEOLOGY & PHILOSOPHY
+================================================================================
+
+Wander Wallet is founded on five uncompromising principles:
+
+1. Never Fabricate Travel Data (No AI Hallucinations for Money & Availability):
+   - Generative AI should explain and reason, but NEVER invent prices, availability,
+     flight schedules, or hotel rates.
+   - When real-world live provider APIs have unverified rates, the item is tagged
+     with PRICE_UNAVAILABLE. The budget engine handles unpriced items safely
+     by excluding them from firm totals and warning the traveler.
+
+2. Zero Floating-Point Drift:
+   - In group travel, lost pennies lead to lost friendships. All calculations
+     are performed in integer minor units (paise/cents).
+   - When ₹100 is split among 3 travelers, the division yields 3,334 paise,
+     3,333 paise, and 3,333 paise, guaranteeing the sum is ALWAYS exactly 10,000 paise.
+
+3. Complete Source Transparency:
+   - Every price, place, and schedule in the application discloses its source:
+     e.g., "Source: Frankfurter API", "Source: OpenStreetMap", "Source: Amadeus".
+
+4. Minimum Cash Flow (Eliminate Circular Debts):
+   - If Alice owes Bob ₹1,000, and Bob owes Charlie ₹1,000, Bob should not be
+     involved in money transfers. Alice pays Charlie ₹1,000 directly.
+   - Wander Wallet uses graph debt simplification to minimize total transactions.
+
+5. Editorial Aesthetic over Sterile Dashboard:
+   - Travel is emotional and memorable. Wander Wallet avoids looking like
+     enterprise accounting software (e.g. QuickBooks). It feels like an
+     editorial travel magazine and passport journal.
+
+
+================================================================================
+4. METHODOLOGY & SYSTEM DESIGN
+================================================================================
+
+A. Architecture Layers:
+
+   [Client Browser / Mobile PWA]
+                 │
+                 ▼
+   [Next.js 16 App Router UI Pages]
+    (/trips, /trips/[id], /explore, /ai-planner, /profile, /summary)
+                 │
+                 ▼
+   [Server Route Handlers / REST APIs]
+    (/api/trips, /api/trips/[id]/expenses, /api/trips/[id]/settlement, /api/ocr/scan)
+                 │
+   ┌─────────────┴────────────────────────┐
+   ▼                                      ▼
+[Deterministic Engines]          [External Provider Adapters]
+ - Budget Engine (Minor Units)    - Frankfurter (Currencies)
+ - Expense Split Engine           - Nominatim / Overpass (OSM)
+ - Settlement Engine (Min Flow)   - Amadeus (Flights/Rail)
+ - Itinerary Generator            - Receipt OCR Parser
+   │                                      │
+   └─────────────┬────────────────────────┘
+                 ▼
+   [Resilient Store / Prisma ORM Database]
+
+B. Settlement Algorithm (Greedy Minimum Cash Flow):
+   1. For each member i in group:
+      Net_Balance[i] = Total_Paid_By_Member[i] - Total_Share_Consumed_By_Member[i]
+   2. Separate members into two priority lists:
+      - Debtors: Net_Balance < 0 (sorted descending by debt)
+      - Creditors: Net_Balance > 0 (sorted descending by credit)
+   3. Greedily match the largest debtor with the largest creditor:
+      Transfer_Amount = min(abs(debtor.balance), creditor.balance)
+      Create single direct transaction: Debtor -> Creditor
+      Update balances until all balances reach 0.
+   4. Result: Circular debts are completely eliminated, minimizing transactions.
+
+
+================================================================================
+5. ANSWERS TO YOUR SPECIFIC QUESTIONS
+================================================================================
+
+--------------------------------------------------------------------------------
+QUESTION 1: FOR THE MAP, DO WE NEED ANY API KEY TO USE?
+--------------------------------------------------------------------------------
+ANSWER:
+NO. You do NOT need any API key!
+
+How it works:
+- Wander Wallet uses Leaflet.js with CartoDB Voyager and OpenStreetMap tiles.
+- CartoDB and OpenStreetMap provide free, open-access tile servers that require
+  zero authentication tokens, zero credit cards, and zero API keys.
+- For geocoding and places of interest (POIs), the application uses OpenStreetMap's
+  Nominatim service and the Overpass API, which are also 100% free and open-source.
+- If in the future you wish to use Google Maps or Mapbox for custom satellite views,
+  the provider adapter architecture is already in place to accept a key, but for
+  standard operation, Wander Wallet works completely free out-of-the-box.
+
+--------------------------------------------------------------------------------
+QUESTION 2: CAN WE ADD EXTRA EXPENSES ON THE TRIP (SHOPPING, ACTIVITIES) AND 
+SPLIT ONLY BETWEEN THE SPECIFIC PEOPLE WHO BOUGHT THEM?
+--------------------------------------------------------------------------------
+ANSWER:
+YES! This feature is ALREADY fully implemented and working in Wander Wallet!
+
+How it works in Wander Wallet:
+1. Selective Participant Splitting:
+   - When adding an expense (e.g. "Scuba Diving Gear" or "Shopping at Night Market"),
+     the user selects the payer (who swiped the card).
+   - Under "Participants", you do NOT have to select everyone! You can check ONLY
+     the 2 or 3 people who actually participated.
+   - The engine splits the cost ONLY among those selected participants.
+   - The travelers who were not selected owe ₹0 and are completely unaffected.
+
+2. Personal Expense Support:
+   - If Person A buys clothes, souvenirs, or personal medicine that belongs
+     strictly to them, they check the "Personal expense" toggle.
+   - The expense is recorded under the trip's total spend and appears in Person A's
+     individual dashboard, but it is EXCLUDED from group debt settlement.
+   - Nobody else is charged a single rupee.
+
+3. Custom / Exact Amounts:
+   - If two people buy things together with different amounts (e.g. Person A bought
+     ₹1,500 worth of items and Person B bought ₹500 worth of items on one bill of ₹2,000),
+     you select "EXACT" or "CUSTOM" split.
+   - You type ₹1,500 for Person A and ₹500 for Person B.
+   - The server validates that ₹1,500 + ₹500 === ₹2,000 and assigns the debt exactly.
+
+--------------------------------------------------------------------------------
+QUESTION 3: RESTAURANT BILL SPLITTING (VEG VS. NON-VEG / DRINKERS VS. NON-DRINKERS)
+& OCR RECEIPT SPLITTING METHODOLOGY
+--------------------------------------------------------------------------------
+ANSWER:
+This is the single most common cause of arguments on group vacations:
+- 4 vegetarians who ordered Dal & Roti (₹300 each)
+- 2 non-vegetarians who ordered Prawns & Mutton (₹900 each)
+- 3 people who had alcohol (₹1,500 in cocktails)
+- 3 people who drank only water/soda.
+Splitting the bill equally means the vegetarians and non-drinkers end up
+subsidizing the seafood and cocktails!
+
+HERE IS OUR METHODOLOGY & IMPLEMENTATION APPROACH:
+
+A. The "Itemized Multi-Tag Bill Splitter" Methodology:
+   Instead of splitting the grand total, the bill is split at the LINE-ITEM level.
+
+   1. Step 1: Receipt Upload & OCR Parsing:
+      - A traveler snaps a photo of the restaurant bill (JPG/PNG/WEBP/PDF).
+      - The OCR endpoint (`/api/ocr/scan` in Wander Wallet) extracts line items:
+          * Paneer Butter Masala (Qty: 2) -> ₹700
+          * Butter Garlic Prawns (Qty: 2) -> ₹1,600
+          * Cocktails / Beer (Qty: 4)     -> ₹1,800
+          * Garlic Naan (Qty: 6)          -> ₹360
+          * Subtotal                       -> ₹4,460
+          * 5% GST                         -> ₹223
+          * 10% Service Charge             -> ₹446
+          * Grand Total                    -> ₹5,129
+
+   2. Step 2: Interactive Participant Tagging (Quick Avatars):
+      - In the UI, each dish has simple tag presets or traveler avatar chips:
+          * "Veg Dishes" -> Select all vegetarians.
+          * "Non-Veg Dishes" -> Select only the meat eaters.
+          * "Drinks / Alcohol" -> Select only the drinkers.
+          * "Shared Staples" (Rice, Breads, Water) -> Select everyone.
+
+   3. Step 3: Proportional Tax & Service Charge Distribution (Crucial Mathematical Rule):
+      - Many apps fail here by splitting tax equally. That is mathematically unfair!
+        (A person who ate ₹300 of food should not pay the same tax as someone who consumed ₹1,500).
+      - Wander Wallet's algorithm calculates each person's Subtotal Ratio:
+          Person_Ratio = Person_Food_Subtotal / Bill_Food_Subtotal
+      - Tax, tips, and service charges are multiplied by Person_Ratio using
+        deterministic integer minor-unit arithmetic.
+      - Remainder paise are absorbed so the sum of individual shares equals the
+        exact printed receipt total down to the paise.
+
+   4. Step 4: One-Click Ledger Integration:
+      - The user reviews the breakdown on-screen.
+      - Clicking "Confirm & Split" automatically generates the debt transactions
+        in the trip workspace and updates the settlement ledger.
+
+
+================================================================================
+6. FUTURE ENHANCEMENTS & ROADMAP
+================================================================================
+
+1. Real-Time Offline-First Sync (Local-First CRDTs / PWA):
+   - When travelers are in remote beaches or mountains without cellular network,
+     expenses can be logged offline in IndexedDB and synchronized seamlessly
+     via Conflict-Free Replicated Data Types (CRDTs) once internet is restored.
+
+2. Native UPI / Payment Gateway Deep-Links (Instant In-App Settlement):
+   - For Indian travelers: Generate dynamic UPI Intent QR codes and deep links
+     (`upi://pay?pa=recipient@upi&am=1200&tn=WanderWallet-Goa`).
+   - When a debtor clicks "Pay Now", it directly launches Google Pay, PhonePe,
+     or Paytm with the exact amount pre-filled.
+
+3. Live WhatsApp / Telegram Bot Integration:
+   - Allow travelers to log an expense simply by texting a group bot:
+     "Rahul paid 1200 for lunch split equal" or sending a picture of the bill.
+   - The bot runs intent detection and posts it straight into the trip ledger.
+
+4. Gamified Travel Journal & Scrapbook:
+   - Allow travelers to upload their favorite photos to specific itinerary slots.
+   - At the end of the trip, generate a downloadable digital photo album + financial
+     memorabilia booklet.
+
+5. AI Voice Assistant:
+   - Travelers can speak hands-free while driving: "Hey Wander Wallet, record
+     ₹450 for highway toll paid by Ananya."
+
+================================================================================
+                           END OF REPORT
+================================================================================

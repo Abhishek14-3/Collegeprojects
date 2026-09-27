@@ -1,0 +1,590 @@
+// Prisma schema for Wander Wallet
+// Production-grade PostgreSQL schema with minor-unit integer financial handling
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum TravelStyle {
+  BACKPACKER
+  BALANCED
+  COMFORT
+  PREMIUM
+}
+
+enum TravelerType {
+  SOLO
+  GROUP
+  COUPLE
+  FAMILY
+  BUSINESS
+}
+
+enum MemberRole {
+  OWNER
+  ORGANIZER
+  MEMBER
+  VIEWER
+}
+
+enum PriceType {
+  LIVE
+  EXACT
+  ESTIMATE
+  ESTIMATED
+  CACHED
+  PRICE_UNAVAILABLE
+}
+
+enum TransportType {
+  FLIGHT
+  TRAIN
+  BUS
+  CAR
+  RENTAL
+  LOCAL
+  BIKE
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+enum TimeSlot {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+}
+
+enum BudgetCategoryType {
+  STAY
+  TRANSPORT
+  FOOD
+  ACTIVITIES
+  LOCAL_TRAVEL
+  BUFFER
+  SHOPPING
+  OTHER
+}
+
+enum SettlementStatus {
+  PENDING
+  PARTIAL
+  COMPLETED
+}
+
+enum NotificationType {
+  BUDGET_WARNING
+  TRIP_UPDATE
+  MEMBER_JOINED
+  EXPENSE_ADDED
+  SETTLEMENT_PENDING
+  PRICE_ALERT
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model User {
+  id                String       @id @default(uuid())
+  email             String       @unique
+  passwordHash      String
+  name              String
+  avatarUrl         String?
+  preferredCurrency String       @default("INR")
+  preferredLanguage String       @default("en")
+  travelerType      TravelerType @default(GROUP)
+  travelStyle       TravelStyle  @default(BALANCED)
+  interests         String[]     @default([])
+  isOnboarded       Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  tripsCreated      Trip[]
+  memberships       TripMember[]
+  savedPlaces       SavedPlace[]
+  notifications     Notification[]
+  aiConversations   AIConversation[]
+
+  @@map("users")
+}
+
+model Trip {
+  id                   String          @id @default(uuid())
+  title                String
+  destination          String
+  startingLocation     String
+  isOpenToSuggestions  Boolean         @default(false)
+  startDate            DateTime
+  endDate              DateTime
+  numberOfDays         Int
+  numberOfTravelers    Int             @default(1)
+  groupBudgetMinor     BigInt          // stored in minor units (paise/cents)
+  currency             String          @default("INR")
+  travelStyle          TravelStyle     @default(BALANCED)
+  interests            String[]        @default([])
+  preferredTransport   TransportType[] @default([])
+  accommodationPref    String?
+  dietaryPrefs         String[]        @default([])
+  accessibilityReqs    String[]        @default([])
+  mustVisitPlaces      String[]        @default([])
+  placesToAvoid        String[]        @default([])
+  specialRequirements  String?
+  heroImageUrl         String?
+  status               String          @default("PLANNING")
+  createdById          String
+  createdBy            User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  members              TripMember[]
+  preferences          TripPreference[]
+  budget               Budget?
+  researchResults      ResearchResult[]
+  transportOptions     TransportOption[]
+  accommodationOptions AccommodationOption[]
+  activities           Activity[]
+  restaurants          Restaurant[]
+  itineraries          Itinerary[]
+  expenses             Expense[]
+  settlements          Settlement[]
+  notifications        Notification[]
+  aiConversations      AIConversation[]
+  sources              TripSource[]
+
+  @@map("trips")
+}
+
+model TripMember {
+  id                      String              @id @default(uuid())
+  tripId                  String
+  trip                    Trip                @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  userId                  String?
+  user                    User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  inviteEmail             String?
+  inviteName              String
+  avatarUrl               String?
+  role                    MemberRole          @default(MEMBER)
+  plannedContributionMinor BigInt             @default(0)
+  actualContributionMinor  BigInt             @default(0)
+  plannedShareMinor       BigInt              @default(0)
+  actualShareMinor        BigInt              @default(0)
+  joinedAt                DateTime            @default(now())
+
+  expenseShares           ExpenseParticipant[]
+  paymentsFrom            SettlementPayment[] @relation("PaymentsFrom")
+  paymentsTo              SettlementPayment[] @relation("PaymentsTo")
+
+  @@map("trip_members")
+}
+
+model TripPreference {
+  id        String   @id @default(uuid())
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  category  String
+  key       String
+  value     String
+
+  @@map("trip_preferences")
+}
+
+model Budget {
+  id                String           @id @default(uuid())
+  tripId            String           @unique
+  trip              Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  totalBudgetMinor  BigInt
+  plannedSpendMinor BigInt           @default(0)
+  actualSpendMinor  BigInt           @default(0)
+  currency          String           @default("INR")
+  bufferAmountMinor BigInt           @default(0)
+  notes             String?
+  categories        BudgetCategory[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@map("budgets")
+}
+
+model BudgetCategory {
+  id                String             @id @default(uuid())
+  budgetId          String
+  budget            Budget             @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  category          BudgetCategoryType
+  allocatedMinor    BigInt
+  percentage        Float
+  plannedSpendMinor BigInt             @default(0)
+  actualSpentMinor  BigInt             @default(0)
+  notes             String?
+
+  @@map("budget_categories")
+}
+
+model Destination {
+  id                   String        @id @default(uuid())
+  name                 String
+  country              String
+  region               String?
+  description          String
+  heroImageUrl         String?
+  averageDailyCostMinor BigInt
+  currency             String        @default("INR")
+  popularStyles        TravelStyle[]
+  tags                 String[]
+  bestMonthsToVisit    String[]
+  latitude             Float?
+  longitude            Float?
+  createdAt            DateTime      @default(now())
+
+  @@map("destinations")
+}
+
+model ResearchResult {
+  id            String    @id @default(uuid())
+  tripId        String
+  trip          Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  category      String
+  name          String
+  location      String
+  priceMinor    BigInt?
+  currency      String    @default("INR")
+  priceType     PriceType @default(ESTIMATED)
+  rating        Float?
+  reviewCount   Int?
+  source        String
+  sourceUrl     String?
+  provider      String
+  retrievedAt   DateTime  @default(now())
+  expiresAt     DateTime?
+  availability  String?
+  distanceKm    Float?
+  travelTimeMins Int?
+  metadataJson  String?
+
+  @@map("research_results")
+}
+
+model TransportOption {
+  id                String        @id @default(uuid())
+  tripId            String
+  trip              Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  type              TransportType
+  operator          String
+  departurePoint    String
+  arrivalPoint      String
+  departureTime     DateTime?
+  arrivalTime       DateTime?
+  durationMins      Int
+  totalCostMinor    BigInt
+  perPersonCostMinor BigInt
+  currency          String        @default("INR")
+  priceType         PriceType     @default(ESTIMATED)
+  source            String
+  bookingUrl        String?
+  isSelected        Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+
+  @@map("transport_options")
+}
+
+model AccommodationOption {
+  id                 String    @id @default(uuid())
+  tripId             String
+  trip               Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name               String
+  location           String
+  latitude           Float?
+  longitude          Float?
+  pricePerNightMinor BigInt
+  totalStayCostMinor BigInt
+  currency           String    @default("INR")
+  priceType          PriceType @default(ESTIMATED)
+  roomCapacity       Int
+  amenities          String[]  @default([])
+  rating             Float?
+  reviewCount        Int?
+  cancellationPolicy String?
+  source             String
+  bookingUrl         String?
+  imageUrl           String?
+  isSelected         Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+
+  @@map("accommodation_options")
+}
+
+model Activity {
+  id                  String    @id @default(uuid())
+  tripId              String
+  trip                Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name                String
+  category            String
+  location            String
+  latitude            Float?
+  longitude           Float?
+  durationMins        Int
+  pricePerPersonMinor BigInt
+  totalGroupCostMinor BigInt
+  currency            String    @default("INR")
+  priceType           PriceType @default(ESTIMATED)
+  openingHours        String?
+  rating              Float?
+  reviewCount         Int?
+  source              String
+  bookingUrl          String?
+  imageUrl            String?
+  isSelected          Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+
+  @@map("activities")
+}
+
+model Restaurant {
+  id                         String    @id @default(uuid())
+  tripId                     String
+  trip                       Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name                       String
+  cuisine                    String
+  location                   String
+  latitude                   Float?
+  longitude                  Float?
+  mealType                   MealType
+  priceLevel                 String?
+  estimatedCostPerPersonMinor BigInt
+  currency                   String    @default("INR")
+  rating                     Float?
+  source                     String
+  isSelected                 Boolean   @default(false)
+  createdAt                  DateTime  @default(now())
+
+  @@map("restaurants")
+}
+
+model Itinerary {
+  id        String         @id @default(uuid())
+  tripId    String
+  trip      Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  title     String
+  version   Int            @default(1)
+  isCurrent Boolean        @default(true)
+  days      ItineraryDay[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("itineraries")
+}
+
+model ItineraryDay {
+  id             String          @id @default(uuid())
+  itineraryId    String
+  itinerary      Itinerary       @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  dayNumber      Int
+  date           DateTime
+  title          String
+  theme          String?
+  totalCostMinor BigInt          @default(0)
+  currency       String          @default("INR")
+  items          ItineraryItem[]
+
+  @@map("itinerary_days")
+}
+
+model ItineraryItem {
+  id                 String        @id @default(uuid())
+  itineraryDayId     String
+  itineraryDay       ItineraryDay  @relation(fields: [itineraryDayId], references: [id], onDelete: Cascade)
+  timeSlot           TimeSlot
+  startTime          String
+  endTime            String?
+  title              String
+  description        String?
+  category           String
+  location           String?
+  latitude           Float?
+  longitude          Float?
+  estimatedCostMinor BigInt        @default(0)
+  currency           String        @default("INR")
+  transportMode      String?
+  travelTimeMins     Int?
+  notes              String?
+  orderIndex         Int           @default(0)
+
+  @@map("itinerary_items")
+}
+
+model Expense {
+  id                  String               @id @default(uuid())
+  tripId              String
+  trip                Trip                 @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  payerId             String
+  title               String
+  category            BudgetCategoryType
+  amountMinor         BigInt
+  currency            String               @default("INR")
+  convertedAmountMinor BigInt
+  baseCurrency        String               @default("INR")
+  exchangeRate        Float                @default(1.0)
+  rateTimestamp       DateTime             @default(now())
+  date                DateTime             @default(now())
+  description         String?
+  receiptUrl          String?
+  isSettled           Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  participants        ExpenseParticipant[]
+
+  @@map("expenses")
+}
+
+model ExpenseParticipant {
+  id               String     @id @default(uuid())
+  expenseId        String
+  expense          Expense    @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  memberId         String
+  member           TripMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  shareAmountMinor BigInt
+  currency         String     @default("INR")
+  isCustomShare    Boolean    @default(false)
+
+  @@map("expense_participants")
+}
+
+model Settlement {
+  id               String              @id @default(uuid())
+  tripId           String
+  trip             Trip                @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  status           SettlementStatus    @default(PENDING)
+  totalAmountMinor BigInt
+  currency         String              @default("INR")
+  generatedAt      DateTime            @default(now())
+  settledAt        DateTime?
+  payments         SettlementPayment[]
+
+  @@map("settlements")
+}
+
+model SettlementPayment {
+  id               String     @id @default(uuid())
+  settlementId     String
+  settlement       Settlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  fromMemberId     String
+  fromMember       TripMember @relation("PaymentsFrom", fields: [fromMemberId], references: [id], onDelete: Cascade)
+  toMemberId       String
+  toMember         TripMember @relation("PaymentsTo", fields: [toMemberId], references: [id], onDelete: Cascade)
+  amountMinor      BigInt
+  currency         String     @default("INR")
+  isPaid           Boolean    @default(false)
+  paidAt           DateTime?
+  paymentReference String?
+
+  @@map("settlement_payments")
+}
+
+model SavedPlace {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  destination String
+  category    String
+  notes       String?
+  sourceUrl   String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+
+  @@map("saved_places")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tripId    String?
+  trip      Trip?            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+model AIConversation {
+  id        String      @id @default(uuid())
+  tripId    String
+  trip      Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  messages  AIMessage[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@map("ai_conversations")
+}
+
+model AIMessage {
+  id             String         @id @default(uuid())
+  conversationId String
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           MessageRole
+  content        String
+  metadataJson   String?
+  createdAt      DateTime       @default(now())
+
+  @@map("ai_messages")
+}
+
+model CurrencyRate {
+  id           String   @id @default(uuid())
+  fromCurrency String
+  toCurrency   String
+  rate         Float
+  provider     String
+  retrievedAt  DateTime @default(now())
+
+  @@unique([fromCurrency, toCurrency])
+  @@map("currency_rates")
+}
+
+model ReceiptScan {
+  id                String    @id @default(uuid())
+  tripId            String
+  userId            String
+  imageUrl          String
+  rawOcrText        String?
+  parsedMerchant    String?
+  parsedDate        DateTime?
+  parsedTotalMinor  BigInt?
+  parsedTaxMinor    BigInt?
+  parsedCurrency    String?
+  status            String    @default("PENDING")
+  createdAt         DateTime  @default(now())
+
+  @@map("receipt_scans")
+}
+
+model TripSource {
+  id           String   @id @default(uuid())
+  tripId       String
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  providerName String
+  sourceUrl    String?
+  dataType     String
+  retrievedAt  DateTime @default(now())
+
+  @@map("trip_sources")
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sliders, Cpu, Info, Zap } from 'lucide-react';
+import { Sliders, Cpu, Sparkles, Zap, ChevronDown, RotateCcw } from 'lucide-react';
 
 interface AlgorithmSelectorProps {
   method: 'hybrid' | 'tfidf' | 'rake' | 'textrank';
@@ -23,130 +23,133 @@ export const AlgorithmSelector: React.FC<AlgorithmSelectorProps> = ({
   const algorithms = [
     {
       id: 'hybrid',
-      name: 'Hybrid',
-      desc: 'Combines TF-IDF, RAKE & TextRank for maximum precision & recall.',
-      badge: 'RECOMMENDED',
+      name: 'Hybrid NLP',
+      shortName: 'Hybrid',
+      badge: 'Best Accuracy',
+      desc: 'Blends TF-IDF + RAKE + TextRank',
       color: 'from-brand-500 to-indigo-500',
+      activeBorder: 'border-brand-500 bg-brand-500/10 text-brand-500',
     },
     {
       id: 'tfidf',
       name: 'TF-IDF',
-      desc: 'Statistical term frequency & sublinear inverse document frequency.',
-      badge: 'FAST',
+      shortName: 'TF-IDF',
+      badge: 'Statistical',
+      desc: 'Term Frequency & Sublinear IDF',
       color: 'from-sky-500 to-blue-600',
+      activeBorder: 'border-sky-500 bg-sky-500/10 text-sky-400',
     },
     {
       id: 'rake',
       name: 'RAKE',
-      desc: 'Rapid Automatic Keyword Extraction based on co-occurrence graph.',
-      badge: 'MULTI-WORD',
+      shortName: 'RAKE',
+      badge: 'Co-occurrence',
+      desc: 'Rapid Automatic Keyword Extraction',
       color: 'from-violet-500 to-purple-600',
+      activeBorder: 'border-purple-500 bg-purple-500/10 text-purple-400',
     },
     {
       id: 'textrank',
       name: 'TextRank',
-      desc: 'Graph-based PageRank adaptation for keyphrase centrality.',
-      badge: 'GRAPH MODEL',
+      shortName: 'TextRank',
+      badge: 'PageRank Graph',
+      desc: 'Graph Centrality & Word Co-occurrence',
       color: 'from-emerald-500 to-teal-600',
+      activeBorder: 'border-emerald-500 bg-emerald-500/10 text-emerald-400',
     },
   ];
 
+  const resetWeights = () => {
+    setWeights({ tfidf: 0.4, rake: 0.3, textrank: 0.3 });
+  };
+
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-5">
+    <div className="space-y-3">
       
-      {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center space-x-2">
-          <Cpu className="w-5 h-5 text-brand-500" />
-          <h3 className="font-display font-semibold text-slate-900 dark:text-slate-100 text-lg">
-            Algorithm & Extraction Parameters
-          </h3>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center space-x-1.5 text-xs text-brand-600 dark:text-brand-400 hover:underline"
-        >
-          <Sliders className="w-3.5 h-3.5" />
-          <span>{showAdvanced ? 'Hide Custom Weights' : 'Custom Weights'}</span>
-        </button>
-      </div>
-
-      {/* Algorithm Radio Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* Segmented Algorithm Switcher Bar */}
+      <div className="p-1 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-1">
         {algorithms.map((alg) => {
           const isSelected = method === alg.id;
           return (
-            <div
+            <button
               key={alg.id}
+              type="button"
               onClick={() => setMethod(alg.id as any)}
-              className={`cursor-pointer rounded-xl p-4 transition-all duration-200 border flex flex-col justify-between ${
+              className={`relative px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center text-center ${
                 isSelected
-                  ? 'border-brand-500 bg-brand-500/5 dark:bg-brand-500/10 shadow-md ring-1 ring-brand-500/30'
-                  : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-950/30'
+                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm border border-slate-200 dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-900/50'
               }`}
             >
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-2.5 h-2.5 rounded-full bg-gradient-to-r ${alg.color} shrink-0`} />
-                    <span className="font-display font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base leading-snug">
-                      {alg.name}
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-300/40 dark:border-slate-700/50 shrink-0">
-                    {alg.badge}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pt-0.5">
-                  {alg.desc}
-                </p>
+              <div className="flex items-center space-x-1.5">
+                {alg.id === 'hybrid' && <Sparkles className="w-3 h-3 text-brand-500 shrink-0" />}
+                <span>{alg.shortName}</span>
               </div>
-            </div>
+              <span className={`text-[10px] font-normal font-mono ${isSelected ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                {alg.badge}
+              </span>
+            </button>
           );
         })}
       </div>
 
-      {/* Controls: Top N Slider */}
-      <div className="pt-2 space-y-2">
-        <div className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300">
-          <label className="flex items-center space-x-1.5">
+      {/* Top N Slider & Hybrid Weights Drawer Trigger */}
+      <div className="flex items-center justify-between gap-4 px-1 text-xs">
+        
+        {/* Top N Phrase Count */}
+        <div className="flex-1 flex items-center space-x-3">
+          <span className="text-slate-500 dark:text-slate-400 shrink-0 flex items-center gap-1 font-medium">
             <Zap className="w-3.5 h-3.5 text-amber-500" />
-            <span>Target Phrase Count (Top N):</span>
-          </label>
-          <span className="font-mono text-brand-600 dark:text-brand-400 font-bold text-sm">
-            {topN} phrases
+            Top Phrases:
+          </span>
+          <input
+            type="range"
+            min={3}
+            max={30}
+            value={topN}
+            onChange={(e) => setTopN(parseInt(e.target.value))}
+            className="w-full max-w-[140px] h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500"
+          />
+          <span className="font-mono font-bold text-brand-600 dark:text-brand-400 text-xs px-2 py-0.5 rounded bg-brand-500/10 border border-brand-500/20 shrink-0">
+            {topN}
           </span>
         </div>
-        <input
-          type="range"
-          min={3}
-          max={50}
-          value={topN}
-          onChange={(e) => setTopN(parseInt(e.target.value))}
-          className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500"
-        />
-        <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-          <span>3 phrases</span>
-          <span>25 phrases</span>
-          <span>50 phrases</span>
-        </div>
+
+        {/* Weights config toggle for Hybrid */}
+        {method === 'hybrid' && (
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center space-x-1 text-xs text-brand-600 dark:text-brand-400 hover:text-brand-500 transition shrink-0"
+          >
+            <Sliders className="w-3 h-3" />
+            <span>{showAdvanced ? 'Hide Weights' : 'Tune Weights'}</span>
+            <ChevronDown className={`w-3 h-3 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+          </button>
+        )}
+
       </div>
 
-      {/* Advanced Custom Weights sliders for Hybrid */}
-      {showAdvanced && (
-        <div className="p-4 rounded-xl bg-slate-100/70 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3 animate-fadeIn">
-          <div className="flex items-center space-x-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-            <Info className="w-3.5 h-3.5 text-brand-500" />
-            <span>Hybrid Component Weighting (Normalized):</span>
+      {/* Expandable Hybrid Weights Controller */}
+      {showAdvanced && method === 'hybrid' && (
+        <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5 animate-fadeIn">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+            <span>Hybrid Scoring Weights:</span>
+            <button
+              type="button"
+              onClick={resetWeights}
+              className="flex items-center space-x-1 text-slate-400 hover:text-slate-200 transition text-[10px]"
+            >
+              <RotateCcw className="w-2.5 h-2.5" />
+              <span>Reset (40/30/30)</span>
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <div className="flex justify-between text-[11px] text-slate-600 dark:text-slate-400 mb-1">
-                <span>TF-IDF Weight</span>
-                <span className="font-mono">{weights.tfidf.toFixed(2)}</span>
+          <div className="grid grid-cols-3 gap-2 text-[10px]">
+            <div className="bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+              <div className="flex justify-between text-slate-500 dark:text-slate-400 mb-1">
+                <span>TF-IDF</span>
+                <span className="font-mono font-bold text-sky-400">{weights.tfidf.toFixed(2)}</span>
               </div>
               <input
                 type="range"
@@ -155,14 +158,14 @@ export const AlgorithmSelector: React.FC<AlgorithmSelectorProps> = ({
                 step={0.05}
                 value={weights.tfidf}
                 onChange={(e) => setWeights({ ...weights, tfidf: parseFloat(e.target.value) })}
-                className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded appearance-none cursor-pointer accent-sky-500"
               />
             </div>
 
-            <div>
-              <div className="flex justify-between text-[11px] text-slate-600 dark:text-slate-400 mb-1">
-                <span>RAKE Weight</span>
-                <span className="font-mono">{weights.rake.toFixed(2)}</span>
+            <div className="bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+              <div className="flex justify-between text-slate-500 dark:text-slate-400 mb-1">
+                <span>RAKE</span>
+                <span className="font-mono font-bold text-purple-400">{weights.rake.toFixed(2)}</span>
               </div>
               <input
                 type="range"
@@ -171,14 +174,14 @@ export const AlgorithmSelector: React.FC<AlgorithmSelectorProps> = ({
                 step={0.05}
                 value={weights.rake}
                 onChange={(e) => setWeights({ ...weights, rake: parseFloat(e.target.value) })}
-                className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet-500"
+                className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded appearance-none cursor-pointer accent-purple-500"
               />
             </div>
 
-            <div>
-              <div className="flex justify-between text-[11px] text-slate-600 dark:text-slate-400 mb-1">
-                <span>TextRank Weight</span>
-                <span className="font-mono">{weights.textrank.toFixed(2)}</span>
+            <div className="bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+              <div className="flex justify-between text-slate-500 dark:text-slate-400 mb-1">
+                <span>TextRank</span>
+                <span className="font-mono font-bold text-emerald-400">{weights.textrank.toFixed(2)}</span>
               </div>
               <input
                 type="range"
@@ -187,7 +190,7 @@ export const AlgorithmSelector: React.FC<AlgorithmSelectorProps> = ({
                 step={0.05}
                 value={weights.textrank}
                 onChange={(e) => setWeights({ ...weights, textrank: parseFloat(e.target.value) })}
-                className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded appearance-none cursor-pointer accent-emerald-500"
               />
             </div>
           </div>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { ComparisonResponse, KeywordItem } from '../types';
+import { ComparisonResponse } from '../types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
-import { GitCompare, CheckCircle, Flame, Layers } from 'lucide-react';
+import { GitCompare, Flame, Clock, Layers, CheckCircle2 } from 'lucide-react';
 
 interface ComparisonViewProps {
   data: ComparisonResponse;
@@ -10,19 +10,19 @@ interface ComparisonViewProps {
 export const ComparisonView: React.FC<ComparisonViewProps> = ({ data }) => {
   const methodNames: Record<string, string> = {
     hybrid: 'Hybrid Model',
-    tfidf: 'TF-IDF',
-    rake: 'RAKE',
-    textrank: 'TextRank',
+    tfidf: 'TF-IDF Statistical',
+    rake: 'RAKE Co-occurrence',
+    textrank: 'TextRank PageRank',
   };
 
   const methodColors: Record<string, string> = {
     hybrid: '#0c8ee9',
-    tfidf: '#0284c7',
-    rake: '#8b5cf6',
+    tfidf: '#38bdf8',
+    rake: '#a855f7',
     textrank: '#10b981',
   };
 
-  // Find phrases present in multiple methods
+  // Calculate consensus phrases across methods
   const phraseCounts: Record<string, { count: number; methods: string[]; avgScore: number }> = {};
 
   Object.entries(data.results).forEach(([methodKey, list]) => {
@@ -47,9 +47,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ data }) => {
       score: info.avgScore / info.count,
     }));
 
-  // Recharts data preparation: Top 10 phrases by highest average score across methods
   const chartData = consensusPhrases.slice(0, 8).map((cp) => {
-    const entry: any = { name: cp.phrase };
+    const entry: any = { name: cp.phrase.length > 16 ? cp.phrase.slice(0, 14) + '..' : cp.phrase };
     Object.keys(data.results).forEach((m) => {
       const found = data.results[m].find((item) => item.phrase.toLowerCase() === cp.phrase);
       entry[m] = found ? parseFloat((found.score * 100).toFixed(1)) : 0;
@@ -58,116 +57,122 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ data }) => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 animate-fadeIn">
       
-      {/* Overview Header */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center space-x-2">
-            <GitCompare className="w-5 h-5 text-brand-500" />
-            <h3 className="font-display font-semibold text-slate-900 dark:text-slate-100 text-lg">
-              Multi-Algorithm Comparative Benchmark
-            </h3>
-          </div>
-          <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20 font-semibold">
-            {data.processing_time_ms.toFixed(1)} ms total time
-          </span>
-        </div>
-
-        {/* High consensus summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <div className="text-xs text-slate-500">Method Consensus</div>
-            <div className="font-display font-bold text-xl text-slate-900 dark:text-slate-100">
-              {consensusPhrases.length} overlapping phrases
+      {/* Top Telemetry Strip */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800">
+          
+          <div className="flex items-center space-x-3 sm:pr-4">
+            <div className="w-9 h-9 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500 shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">Found by 2+ algorithms</div>
+            <div>
+              <div className="text-[11px] text-slate-500">Method Consensus</div>
+              <div className="font-display font-bold text-base text-slate-900 dark:text-slate-100">
+                {consensusPhrases.length} overlapping phrases
+              </div>
+            </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <div className="text-xs text-slate-500">Document Length</div>
-            <div className="font-display font-bold text-xl text-slate-900 dark:text-slate-100">
-              {data.statistics.word_count} words
+          <div className="flex items-center space-x-3 sm:px-4 pt-2 sm:pt-0">
+            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 shrink-0">
+              <Layers className="w-5 h-5" />
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">{data.statistics.sentence_count} sentences</div>
+            <div>
+              <div className="text-[11px] text-slate-500">Tested Models</div>
+              <div className="font-display font-bold text-base text-slate-900 dark:text-slate-100">
+                4 NLP Algorithms
+              </div>
+            </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <div className="text-xs text-slate-500">Tested Algorithms</div>
-            <div className="font-display font-bold text-xl text-slate-900 dark:text-slate-100">
-              4 Methods
+          <div className="flex items-center space-x-3 sm:pl-4 pt-2 sm:pt-0">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+              <Clock className="w-5 h-5" />
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">Hybrid, TF-IDF, RAKE, TextRank</div>
+            <div>
+              <div className="text-[11px] text-slate-500">Total Benchmark Latency</div>
+              <div className="font-mono font-bold text-base text-emerald-600 dark:text-emerald-400">
+                {data.processing_time_ms.toFixed(1)} ms
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
 
-      {/* Chart visualization */}
+      {/* Consensus Breakdown Chart */}
       {chartData.length > 0 && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-4">
-          <h4 className="font-display font-semibold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-1.5">
-            <Flame className="w-4 h-4 text-amber-500" />
-            Top Keyphrase Consensus Score Breakdown Across Algorithms (%)
-          </h4>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-display font-semibold text-xs sm:text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <Flame className="w-4 h-4 text-amber-500" />
+              <span>Multi-Algorithm Consensus Breakdown Score (%)</span>
+            </h4>
+            <span className="text-[10px] text-slate-400 font-mono">Found by 2+ models</span>
+          </div>
           
-          <div className="h-72 w-full pt-2">
+          <div className="h-56 w-full pt-1">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" />
-                <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
+              <BarChart data={chartData} margin={{ top: 5, right: 10, left: -25, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.12} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-15} textAnchor="end" />
+                <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     borderColor: 'rgba(255,255,255,0.1)',
                     borderRadius: '8px',
                     color: '#fff',
-                    fontSize: '12px',
+                    fontSize: '11px',
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                <Bar dataKey="hybrid" name="Hybrid" fill={methodColors.hybrid} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="tfidf" name="TF-IDF" fill={methodColors.tfidf} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="rake" name="RAKE" fill={methodColors.rake} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="textrank" name="TextRank" fill={methodColors.textrank} radius={[4, 4, 0, 0]} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                <Bar dataKey="hybrid" name="Hybrid" fill={methodColors.hybrid} radius={[3, 3, 0, 0]} />
+                <Bar dataKey="tfidf" name="TF-IDF" fill={methodColors.tfidf} radius={[3, 3, 0, 0]} />
+                <Bar dataKey="rake" name="RAKE" fill={methodColors.rake} radius={[3, 3, 0, 0]} />
+                <Bar dataKey="textrank" name="TextRank" fill={methodColors.textrank} radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       )}
 
-      {/* Side-by-Side 4-Column Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Symmetrical 4-Column Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {Object.entries(data.results).map(([mKey, keywords]) => (
           <div
             key={mKey}
-            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col space-y-3"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 shadow-sm flex flex-col space-y-2.5"
           >
+            {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-              <span className="font-display font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: methodColors[mKey] }} />
+              <span className="font-display font-bold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: methodColors[mKey] }} />
                 {methodNames[mKey]}
               </span>
-              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
-                {keywords.length} items
+              <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+                {keywords.length} phrases
               </span>
             </div>
 
-            <div className="space-y-2 flex-1 overflow-y-auto max-h-[380px] pr-1">
+            {/* List */}
+            <div className="space-y-1.5 flex-1 overflow-y-auto max-h-[320px] pr-1">
               {keywords.map((item) => (
                 <div
                   key={item.rank}
-                  className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/30 flex items-center justify-between text-xs"
+                  className="p-2 rounded-lg border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/40 flex items-center justify-between text-xs"
                 >
-                  <div className="flex items-center space-x-2 min-w-0">
-                    <span className="font-mono font-semibold text-slate-400 text-[11px]">
+                  <div className="flex items-center space-x-1.5 min-w-0">
+                    <span className="font-mono text-slate-400 text-[10px] w-4">
                       #{item.rank}
                     </span>
-                    <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate">
                       {item.phrase}
                     </span>
                   </div>
-                  <span className="font-mono text-brand-600 dark:text-brand-400 font-semibold text-[11px] shrink-0 ml-1">
+                  <span className="font-mono text-brand-600 dark:text-brand-400 font-bold text-[10px] shrink-0 ml-1">
                     {(item.score * 100).toFixed(0)}%
                   </span>
                 </div>

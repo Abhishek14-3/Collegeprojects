@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Upload, FileText, Trash2, BookOpen, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, FileText, Trash2, Sparkles, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { uploadDocument } from '../services/api';
 
 interface ArticleInputProps {
@@ -8,6 +8,7 @@ interface ArticleInputProps {
   onAnalyze: () => void;
   loading: boolean;
   onSampleSelect: (sampleKey: string) => void;
+  selectedSample?: string;
 }
 
 export const ArticleInput: React.FC<ArticleInputProps> = ({
@@ -15,11 +16,13 @@ export const ArticleInput: React.FC<ArticleInputProps> = ({
   setText,
   onAnalyze,
   loading,
-  onSampleSelect
+  onSampleSelect,
+  selectedSample = 'ai',
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const charCount = text.length;
@@ -45,6 +48,7 @@ export const ArticleInput: React.FC<ArticleInputProps> = ({
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
 
@@ -62,65 +66,57 @@ export const ArticleInput: React.FC<ArticleInputProps> = ({
     }
   };
 
-  return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-4">
-      
-      {/* Header controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center space-x-2">
-          <FileText className="w-5 h-5 text-brand-500" />
-          <h2 className="font-display font-semibold text-slate-900 dark:text-slate-100 text-lg">
-            Article & Document Input
-          </h2>
-        </div>
+  const samplePresets = [
+    { key: 'ai', label: 'AI & NLP' },
+    { key: 'climate', label: 'Climate' },
+    { key: 'quantum', label: 'Quantum' },
+    { key: 'neuro', label: 'Neuroscience' },
+  ];
 
-        {/* Quick Sample Presets */}
-        <div className="flex items-center flex-wrap gap-2">
-          <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-            <BookOpen className="w-3.5 h-3.5" /> Samples:
-          </span>
-          <button
-            type="button"
-            onClick={() => onSampleSelect('ai')}
-            className="px-2.5 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-400 border border-slate-200 dark:border-slate-700 transition"
-          >
-            AI & NLP
-          </button>
-          <button
-            type="button"
-            onClick={() => onSampleSelect('climate')}
-            className="px-2.5 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-400 border border-slate-200 dark:border-slate-700 transition"
-          >
-            Climate Science
-          </button>
-          <button
-            type="button"
-            onClick={() => onSampleSelect('quantum')}
-            className="px-2.5 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-400 border border-slate-200 dark:border-slate-700 transition"
-          >
-            Quantum Tech
-          </button>
+  return (
+    <div className="flex flex-col h-full space-y-3">
+      
+      {/* Top Presets bar */}
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">
+          Sample Articles:
+        </span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {samplePresets.map((preset) => (
+            <button
+              key={preset.key}
+              type="button"
+              onClick={() => onSampleSelect(preset.key)}
+              className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-400 border border-slate-200 dark:border-slate-700/60 transition"
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Main Textarea with File Drag & Drop zone */}
+      {/* Editor & Dropzone Canvas */}
       <div 
-        onDragOver={(e) => e.preventDefault()}
+        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
-        className="relative group rounded-xl border border-slate-200 dark:border-slate-800 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 bg-slate-50/50 dark:bg-slate-950/50 transition"
+        className={`relative flex-1 min-h-[300px] rounded-xl border transition-all duration-200 flex flex-col bg-slate-50/50 dark:bg-slate-950/60 ${
+          isDragOver 
+            ? 'border-brand-500 ring-2 ring-brand-500/20 bg-brand-500/5' 
+            : 'border-slate-200 dark:border-slate-800 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20'
+        }`}
       >
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Paste your article text here, or drag & drop a file (.txt, .pdf, .docx)..."
-          rows={10}
-          className="w-full p-4 bg-transparent resize-y text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none text-sm sm:text-base leading-relaxed"
+          placeholder="Paste or type your article text here, or drag & drop a document (.txt, .pdf, .docx)..."
+          className="w-full flex-1 p-4 bg-transparent resize-none text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none text-xs sm:text-sm leading-relaxed font-sans"
         />
 
         {uploading && (
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm rounded-xl flex items-center justify-center space-x-2 text-white">
+          <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm rounded-xl flex items-center justify-center space-x-2 text-white z-10">
             <Loader2 className="w-5 h-5 animate-spin text-brand-400" />
-            <span className="text-sm font-medium">Extracting text from file...</span>
+            <span className="text-sm font-medium">Extracting text from document...</span>
           </div>
         )}
       </div>
@@ -132,11 +128,11 @@ export const ArticleInput: React.FC<ArticleInputProps> = ({
         </div>
       )}
 
-      {/* Input Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+      {/* Action Toolbar */}
+      <div className="flex items-center justify-between gap-3 pt-1">
         
-        {/* File upload button & Counters */}
-        <div className="flex items-center space-x-4 w-full sm:w-auto">
+        {/* Left Actions: Upload & Clear */}
+        <div className="flex items-center space-x-2">
           <input
             type="file"
             ref={fileInputRef}
@@ -148,34 +144,30 @@ export const ArticleInput: React.FC<ArticleInputProps> = ({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700"
+            title="Upload .txt, .pdf, or .docx"
           >
             <Upload className="w-3.5 h-3.5 text-brand-500" />
-            <span>Upload Document</span>
+            <span>Upload File</span>
           </button>
 
           {text && (
             <button
               type="button"
               onClick={() => setText('')}
-              className="flex items-center space-x-1 text-xs text-slate-400 hover:text-red-500 transition"
-              title="Clear text"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition"
+              title="Clear editor text"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Clear</span>
             </button>
           )}
-
-          <div className="text-xs text-slate-500 dark:text-slate-400 ml-auto sm:ml-0 font-mono">
-            {wordCount} words | {charCount} chars
-          </div>
         </div>
 
-        {/* Action Button */}
+        {/* Primary Action Button */}
         <button
           type="button"
           onClick={onAnalyze}
           disabled={loading || wordCount < 3}
-          className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-sky-500 text-white font-medium shadow-lg shadow-brand-500/25 hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center space-x-2 text-sm"
+          className="px-5 py-2 rounded-xl bg-gradient-to-r from-brand-600 via-brand-500 to-sky-400 text-white font-semibold shadow-md shadow-brand-500/20 hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center space-x-2 text-xs sm:text-sm"
         >
           {loading ? (
             <>
@@ -184,8 +176,9 @@ export const ArticleInput: React.FC<ArticleInputProps> = ({
             </>
           ) : (
             <>
-              <FileText className="w-4 h-4" />
+              <Sparkles className="w-4 h-4" />
               <span>Extract Key Phrases</span>
+              <ArrowRight className="w-3.5 h-3.5 opacity-80" />
             </>
           )}
         </button>
